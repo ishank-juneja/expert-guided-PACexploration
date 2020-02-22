@@ -1,8 +1,8 @@
 import numpy as np
 from MDP_class import MDP
+from PAC_RL_algos import MBEG
 import random
 import argparse
-import sys
 
 
 # Keeps track of agent state and invokes sample model as per the decision of
@@ -11,16 +11,16 @@ def main(cmd_args):
     # Set random seed for random library
     if args.rs is not None:
         random.seed(args.rs)
+        np.random.seed(args.rs)
     # else no seed
     # Initialise MDP instance by parsing text file with true MDP parameters
     # This MDP object is a sample model, where Transition function and
-    # Reward function are not hidden/private variables
+    # Reward function are hidden/private variables
     mdp = MDP(cmd_args.file_name)
-    # Record born state for starting simulation
-    born_state = mdp.born
-
+    v_hat, pi_hat = MBEG(mdp, 10000)
+    print(v_hat, pi_hat)
+    print(mdp.plan())
     return
-
 
 
 if __name__ == '__main__':
