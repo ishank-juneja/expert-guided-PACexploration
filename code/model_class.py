@@ -45,12 +45,13 @@ class Model:
         if not self.model_valid:
             # Can't take any actions from terminal state
             if np.all(np.delete(self.total_visits, self.exclude, axis=0) > 0) and self.gamma < 1.0:
+                print("Model became valid")
                 self.model_valid = True
             # When gamma = 1, straight away starting computation of policies
             # causes numerical issues because of which policy iteration takes
             # extremely long to converge to optimal policy under ill-formed R_hat, T_hat
             # Any value of gamma < 1, like 0.999999 does not cause this problem
-            elif np.all(np.delete(self.total_visits, self.exclude, axis=0) > 5):
+            elif np.all(np.delete(self.total_visits, self.exclude, axis=0) > 10):
                 self.model_valid = True
 
     def get_max_action_value(self, values):
@@ -93,11 +94,44 @@ class Model:
             values = np.append(values, 0)
         return values
 
+    def evaluate_MBAE_policy(self, pi, explore_terms):
+        # Assuming a single terminal state S-1, remove it from
+        # policy evaluation to get full rank A matrix
+        # Init coeffcient matrix based on diagonal elements having + 1 term
+        states = self.nstates
+        A = np.identity(states)
+        # Assign as per bellman's policy eval equations
+        for s in range(states):
+            A[s, :] = A[s, :] - self.gamma * self.T_hat[s, pi[s], :states]
+        # Assign right side b vector as sum of T * R terms
+        b = np.zeros(states)
+        for s in range(states):
+            # Additional explore term corresposnding to s,pi(s) is added to RHS constant term
+            # In solving the linear Bell-man equations --> augmented bellman's equations
+            b[s] = np.sum(self.T_hat[s, pi[s], :states] * self.R_hat[s, pi[s], :states]) + explore_terms[s, pi[s]]
+        # Check if it is an episodic task, in which case we already know
+        # value for terminal state = 0 (enforce it)
+        if self.type == 'episodic':
+            A = A[:-1, :-1]
+            b = b[:-1]
+        # print(A, b)
+        # Solve and return Ax = b
+        values = np.linalg.solve(A, b)
+        # handle it
+        if self.type == 'episodic':
+            # For last state s = |S| - 1
+            # Only non zero term in value function will be MBAE explore term
+            values = np.append(values, explore_terms[:-1, pi[:-1]])
+        return values
+
     # Perform MDP planning using Howard's policy iteration algo
     # Have assumed that last state is unique terminal state
-    def plan(self):
+    def plan(self, init_policy=None, pac_type=None, explore_terms=0):
         # Initialise a random prev and current policy vector
-        pi_prev = np.random.randint(0, self.nactions, self.nstates)
+        if init_policy is None:
+            pi_prev = np.random.randint(0, self.nactions, self.nstates)
+        else:
+            pi_prev = init_policy
         pi_cur = np.copy(pi_prev)
         # Change 1 action in pi_cur to enter loop (assuming at least 2 actions in MDP)
         if pi_cur[0] != 0:
@@ -112,8 +146,10 @@ class Model:
             pi_prev = pi_cur
             # Get current performance
             # If episodic V(|S|-1) == 0 fixed and solver solves accordingly
-            values = self.evaluate_policy(pi_prev)
+            if pac_type is None:
+                values = self.evaluate_policy(pi_prev)
+            elif pac_type is 'MBAE':
+                values = self.evaluate_MBAE_policy(pi_prev, explore_terms)
             # Attempt to improve policy by evaluating action value functions
             pi_cur = self.get_max_action_value(values)
         return values, pi_cur
-

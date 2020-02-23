@@ -46,6 +46,8 @@ class MDP:
         for s in range(self.nstates):
             if np.array_equal(self.__f_trans[s, :, s], np.ones(self.nactions)):
                 self.terminal.append(s)
+        # Largest reward Rmax
+        self.rmax = np.max(self.__f_reward)
 
     # Function to query MDP as an available sample model,
     # The MDP object also keeps track of agents state in environment
