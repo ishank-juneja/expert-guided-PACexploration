@@ -2,16 +2,35 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="941df8d4-f7f7-438e-a1d1-87a9ba5ac9fd" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/PACtrustPolicies.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/plotter.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/test.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../continuing/MDP10.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../continuing/MDP2.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../continuing/MDP_test.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../continuing/sol10.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../continuing/sol2.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../episodic/MDP10.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../episodic/MDP10b.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../episodic/MDP2.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../episodic/MDP2b.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../episodic/sol10.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../episodic/sol2.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/MDP_class.py" beforeDir="false" afterPath="$PROJECT_DIR$/MDP_class.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/PAC_RL_algos.py" beforeDir="false" afterPath="$PROJECT_DIR$/PAC_RL_algos.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PAC_RL_algos.py" beforeDir="false" afterPath="$PROJECT_DIR$/PACpolicies.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/model_class.py" beforeDir="false" afterPath="$PROJECT_DIR$/model_class.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/Utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../data/MDP2b.txt" beforeDir="false" afterPath="$PROJECT_DIR$/../data/MDP2b.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FavoritesManager">
+    <favorites_list name="code" />
   </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
@@ -24,16 +43,19 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
   </component>
   <component name="ProjectId" id="1Y5DGzadrjaAbTa0na1AUPjF4SL" />
-  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showExcludedFiles" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
+    <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../../SRE_project/AoI_bandits/AoI_bandits_code" />
   </component>
   <component name="SvnConfiguration">
     <configuration />
@@ -48,11 +70,19 @@
     </task>
     <servers />
   </component>
+  <component name="VcsManagerConfiguration">
+    <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
+  </component>
   <component name="WindowStateProjectService">
     <state x="282" y="339" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1582369230585">
       <screen x="67" y="339" width="1299" height="741" />
     </state>
     <state x="282" y="339" key="#com.intellij.execution.impl.EditConfigurationsDialog/67.339.1299.741/1366.0.1920.1080@67.339.1299.741" timestamp="1582369230585" />
+    <state x="1997" y="165" width="424" height="484" key="FileChooserDialogImpl" timestamp="1585740819182">
+      <screen x="1366" y="0" width="1920" height="1080" />
+    </state>
+    <state x="1997" y="165" width="424" height="484" key="FileChooserDialogImpl/67.339.1299.741/1366.0.1920.1080@1366.0.1920.1080" timestamp="1585740819182" />
+    <state x="494" y="452" width="424" height="513" key="FileChooserDialogImpl/67.339.1299.741/1366.0.1920.1080@67.339.1299.741" timestamp="1582812120036" />
     <state x="1366" y="171" width="871" height="909" key="find.popup" timestamp="1582379155971">
       <screen x="1366" y="0" width="1920" height="1080" />
     </state>

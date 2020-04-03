@@ -1,5 +1,4 @@
 import numpy as np
-import sys
 
 
 # Model to store current understanding of an environment

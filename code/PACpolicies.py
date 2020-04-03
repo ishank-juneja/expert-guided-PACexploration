@@ -1,12 +1,11 @@
 import numpy as np
-from random import random, choice
-from utils import get_born_state
+from Utils import get_born_state
 from model_class import Model
 
 
 # Model based epsilon-greedy exploration (MBEG)
 # eps + alpha < 1
-def MBEG(mdp, budget, eps=0.1, horizons=None, pi_external=None, alpha=0):
+def mb_eps_greedy(mdp, budget, eps=0.1, horizons=None, pi_external=None, alpha=0):
     # Create a model object with T_hat, R_hat etc
     model = Model(mdp)
     # Init agent state
@@ -18,7 +17,7 @@ def MBEG(mdp, budget, eps=0.1, horizons=None, pi_external=None, alpha=0):
     for t in range(1, budget + 1):
         # print("Current iteration {0}".format(t))
         # Choose action as per MBEG algorithm
-        rand = random()
+        rand = np.random.uniform(0.0, 1.0)
         if model.model_valid:
             # MDP plan for optimal policy under current model
             values, pi_optimal = model.plan()
@@ -59,7 +58,7 @@ def MBEG(mdp, budget, eps=0.1, horizons=None, pi_external=None, alpha=0):
 
 # Model based action elimination, an eps-delta PAC-RL algorithm
 # Even-Dar et al. 2004, 2006, JMLR
-def MBAE(mdp, budget, eps, delta):
+def mb_action_elimination(mdp, budget, eps, delta):
     # Create a model object with T_hat, R_hat etc
     model = Model(mdp)
     # Init agent state
@@ -83,8 +82,8 @@ def MBAE(mdp, budget, eps, delta):
     for t in range(1, budget + 1):
         print("Current iteration {0}".format(t))
         if model.model_valid:
-            # Choose action as per MBAE algorithm
-            action = choice(Uo[cur_state])
+            # Choose any random viable action as per MBAE algorithm
+            action = np.random.choice(Uo[cur_state])
             # Confidence interval upper/lower bound term for MBAE
             explore_term = Vmax*np.sqrt(np.log(1*t*t*model.nstates*model.nactions/delta)/model.total_visits)
             # Get V_UCB, upper confidence bound on values
