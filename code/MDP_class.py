@@ -13,6 +13,8 @@ class MDP:
         self.nstates = int(fin.readline())
         # Read in number of action types from line 2
         self.nactions = int(fin.readline())
+        if self.nactions < 2:
+            print("Error in line {0}, atleast 2 actions needed".format(fin.line))
         # Read in default born state
         self.born = int(fin.readline())
         # Check if born state lies in range or is -1
@@ -30,7 +32,7 @@ class MDP:
             line_data = fin.readline()
             if Utils.check_reward(line_data, fin):
                 self.__f_reward[s][a] = np.fromstring(line_data, dtype=float, sep='\t')
-            # Error in line, message printed
+            # Error encountered in parsing line, message printed
             else:
                 exit(-1)
         # Read in Transition function into a matrix, private data member, algos can't access
@@ -41,7 +43,7 @@ class MDP:
             line_data = fin.readline()
             if Utils.check_transition(line_data, fin):
                 self.__f_trans[s][a] = np.fromstring(line_data, dtype=float, sep='\t')
-            # Error in line, meesage printed
+            # Error in line, message printed
             else:
                 exit(-1)
         # Read discount factor
@@ -88,38 +90,27 @@ class MDP:
         # Return reward and new state to main
         return rew, next_state, epi_ended
     
-    def get_max_action_value(self, values):
-        Q_pi = np.zeros((self.nstates, self.nactions))
-        for s in range(self.nstates):
-            for a in range(self.nactions):
-                Q_pi[s, a] = np.sum(self.__f_trans[s, a, :] * (self.__f_reward[s, a, :] + self.gamma * values))
+    def get_greedy_policy(self, values):
+        # Compute the action value function for pi
+        Q_pi = np.sum(self.__f_trans * (self.__f_reward + self.gamma * values), axis=2)
         # Return the greedy policy wrt current action values
-        pi_greedy = np.zeros_like(values, dtype=int)
-        for s in range(self.nstates):
-            # Action that maximizes Q for given pi
-            pi_greedy[s] = np.argmax(Q_pi[s, :])
+        pi_greedy = np.argmax(Q_pi, axis=1)
         return pi_greedy
 
     def evaluate_policy(self, pi):
-        # Assuming a single terminal state S-1, remove it from
-        # policy evaluation to get full rank A matrix
-        # Init coefficient matrix based on diagonal elements having + 1 term
+        # Assuming all terminal states from policy evaluation to get full rank A matrix
+        # The value associated with terminal states is defined to be = 0.0
+        # coefficient matrix based on bellman's policy eval equations
         states = self.nstates
-        A = np.identity(states)
-        # Assign as per bellman's policy eval equations
-        for s in range(states):
-            A[s, :] = A[s, :] - self.gamma * self.__f_trans[s, pi[s], :]
+        A = np.identity(states) - self.gamma * self.__f_trans[np.arange(states), pi, :]
         # Assign right side b vector as sum of T * R terms
-        b = np.zeros(states)
-        for s in range(states):
-            b[s] = np.sum(self.__f_trans[s, pi[s], :] * self.__f_reward[s, pi[s], :])
-        # Array to hold values
-        values = np.zeros(states)
+        b = np.sum(self.__f_trans[np.arange(states), pi, :] * self.__f_reward[np.arange(states), pi, :], axis=1)
+        values = np.zeros(states, dtype=np.float32)
         # Get list of non terminal states
         state_lst = list(range(states))
         # Check if it is an episodic task, in which case we already know
-        # value for terminal state = 0 (enforce it)
-        if self.type == 'episodic':
+        # value for terminal states are = 0 (enforce it) (only enter if list non empty)
+        if self.type == 'episodic' and self.terminal:
             # New delete rows and columns corresponding to indices in self.terminal
             A = np.delete(np.delete(A, self.terminal, axis=1), self.terminal, axis=0)
             b = np.delete(b, self.terminal, axis=0)
@@ -135,21 +126,17 @@ class MDP:
     def plan(self):
         # Initialise a random prev and current policy vector
         pi_prev = np.random.randint(0, self.nactions, self.nstates)
-        pi_cur = np.copy(pi_prev)
-        # Change 1 action in pi_cur to enter loop (assuming at least 2 actions in MDP)
-        if pi_cur[0] != 0:
-            pi_cur[0] = 0
-        else:
-            pi_cur[0] = 1
-        # Init values array
-        values = np.zeros_like(pi_prev, dtype=float)
+        # Perform 1 iteration of HPI to enter while loop
+        # Get value function for current policy
+        values = self.evaluate_policy(pi_prev)
+        # Attempt to improve policy by evaluating action value functions
+        pi_cur = self.get_greedy_policy(values)
         # Begin policy iteration/improvement loop
         while not np.array_equal(pi_prev, pi_cur):
             # Update pi_prev to pi_cur
             pi_prev = pi_cur
-            # Get current performance
-            # If episodic V(|S|-1) == 0 fixed and solver solves accordingly
+            # Get value function for current policy
             values = self.evaluate_policy(pi_prev)
             # Attempt to improve policy by evaluating action value functions
-            pi_cur = self.get_max_action_value(values)
+            pi_cur = self.get_greedy_policy(values)
         return values, pi_cur

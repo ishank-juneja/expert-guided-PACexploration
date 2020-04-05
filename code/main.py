@@ -25,32 +25,35 @@ def main(cmd_args, fout):
         algos = ['mb_eps_greedy', 'mb_action_elimination']
     # Obtain true value function for MDP
     values, pi_star = mdp.plan()
-    horizons = [100, 200, 500, 1000, 5000, 10000, 20000, 50000]
-    pi_external = np.array([0, 0, 0, 1, 4, 3, 1, 0, 0, 0])
+    for i in range(len(values)):
+        print(values[i])
+    print(pi_star)
+    # horizons = [100, 200, 500, 1000, 5000, 10000, 20000, 50000]
+    # pi_external = np.array([0, 0, 0, 1, 4, 3, 1, 0, 0, 0])
     # alphas = [0.01, 0.02, 0.05, 0.1, 0.2, 0.5]
     # dev_expert = np.zeros((len(horizons), args.nseeds))
     # dev_vanilla = np.zeros((len(horizons), args.nseeds))
 
-    for al in algos:
-        # Get the method associated with the al
-        explore_method = getattr(PACpolicies, al)
-        for rs in range(args.nseeds):
-            # Seed all subsequent random events using this random seed
-            np.random.seed(rs)
-            print("Currently simulating {0} on MDP {1} Random Seed = {2}".format(al, in_name, rs))
-            true_v_lst, (v_hat, pi_hat) = explore_method(mdp, 50000, eps=0.1, horizons=horizons)
-            for horizon, value in enumerate(true_v_lst):
-                dev_vanilla[horizon, rs] = max_norm_diff(value, values)
-        # Write algorithm wise data to file
-        eps_array_expert = np.mean(dev_expert, axis=1)
-        eps_array_vanilla = np.mean(dev_vanilla, axis=1)
-            # Write data from current run to file
-            # Record data at intervals of STEP in file
-            if t % STEP == 0:
-                fout.write(
-                    "{0}, {1}, {2}, {3}, {4:.2f}, {5:.2f}, {6:.2f}, {7:.2f}\n".format(al, rs, eps, t, REG,
-                                                                                      mu_max * t - REW, AoI_REG,
-                                                                                      AoI_cum - t / mu_max))
+    # for al in algos:
+    #     # Get the method associated with the al
+    #     explore_method = getattr(PACpolicies, al)
+    #     for rs in range(args.nseeds):
+    #         # Seed all subsequent random events using this random seed
+    #         np.random.seed(rs)
+    #         print("Currently simulating {0} on MDP {1} Random Seed = {2}".format(al, in_name, rs))
+    #         true_v_lst, (v_hat, pi_hat) = explore_method(mdp, 50000, eps=0.1, horizons=horizons)
+    #         for horizon, value in enumerate(true_v_lst):
+    #             dev_vanilla[horizon, rs] = max_norm_diff(value, values)
+    #     # Write algorithm wise data to file
+    #     eps_array_expert = np.mean(dev_expert, axis=1)
+    #     eps_array_vanilla = np.mean(dev_vanilla, axis=1)
+    #         # Write data from current run to file
+    #         # Record data at intervals of STEP in file
+    #         if t % STEP == 0:
+    #             fout.write(
+    #                 "{0}, {1}, {2}, {3}, {4:.2f}, {5:.2f}, {6:.2f}, {7:.2f}\n".format(al, rs, eps, t, REG,
+    #                                                                                   mu_max * t - REW, AoI_REG,
+    #                                                                                   AoI_cum - t / mu_max))
     # plt.plot(horizons, eps_array_expert, color='b')
     # plt.plot(horizons, eps_array_vanilla, color='r')
     # plt.xlabel("Horizon - T")
