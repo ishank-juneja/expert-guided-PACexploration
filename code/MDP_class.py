@@ -11,10 +11,10 @@ class MDP:
         fin = Utils.FileLineWrapper(open(file_name, 'r'))
         # Read in number of states from line 1 as an int
         self.nstates = int(fin.readline())
+        # Collection of states as numpy array for quick sampling
+        self.states = np.arange(self.nstates)
         # Read in number of action types from line 2
         self.nactions = int(fin.readline())
-        if self.nactions < 2:
-            print("Error in line {0}, atleast 2 actions needed".format(fin.line))
         # Read in default born state
         self.born = int(fin.readline())
         # Check if born state lies in range or is -1
@@ -54,42 +54,48 @@ class MDP:
         if self.type != 'episodic' and self.type != 'continuing':
             print("Error on line {0}, provided type {1} must be in [episodic, continuing]".format(fin.line, self.type))
             exit(-1)
-        if self.gamma > 1.0 or self.gamma < 0.0:
+        elif self.gamma > 1.0 or self.gamma < 0.0:
             print("Discount factor gamma out of range on line {0}".format(fin.line - 1))
             exit(-1)
         elif self.gamma == 1.0 and self.type == 'continuing':
             print("Discount factor cannot be 1.0 for continuing MDP: line {0}".format(fin.line - 1))
             exit(-1)
-        # List to keep track of all terminal states in the MDP
+        # List to keep track of all terminal states in an episodic MDP
+        # terminal states in a continuing MDP don't need to be handled specially
         self.terminal = []
+        self.non_terminal = list(range(self.nstates))
         # Return all terminal state candidates as per format,
-        # for an episodic task, the last state must always be a terminal state, non-empty in case of an episodic task
+        # for an episodic task, there must be at least one terminal state, non-empty in case of an episodic task
         # Transitions to itself with probability 1 for all actions implies terminal state
-        for s in range(self.nstates):
-            if np.array_equal(self.__f_trans[s, :, s], np.ones(self.nactions)):
-                self.terminal.append(s)
-        # Check if episodic and collection of terminal states empty
-        if self.type == 'episodic' and not self.terminal:
-            print("Error in MDP definition, episodic tasks must have at least one terminal state")
-            exit(-1)
+        if self.type == 'episodic':
+            for s in range(self.nstates):
+                if np.array_equal(self.__f_trans[s, :, s], np.ones(self.nactions)):
+                    # Add to list of terminal states and remove from non terminal
+                    self.terminal.append(s)
+                    self.non_terminal.remove(s)
+            # Check if episodic and collection of terminal states empty
+            if not self.terminal:
+                print("Error in MDP definition, episodic tasks must have at least one terminal state")
+                exit(-1)
         # Record largest reward values Rmax, accessible to algorithms
-        self.rmax = np.max(self.__f_reward)
+        self.Rmax = np.max(self.__f_reward)
 
     # Function to query MDP as an available sample model,
     # The MDP object also keeps track of agents state in environment
     def sample(self, cur_state, action):
         # Get next state as per transition function distribution
-        next_states = np.arange(self.nstates)
-        next_state = np.random.choice(next_states, p=self.__f_trans[cur_state, action, :])
+        next_state = np.random.choice(self.states, p=self.__f_trans[cur_state, action, :])
         # Get reward associated with transition
         rew = self.__f_reward[cur_state, action, next_state]
-        # Episode ended
+        # Check if Episode has ended
         epi_ended = False
+        # self.terminal is an empty list for continuing tasks
         if next_state in self.terminal:
             epi_ended = True
-        # Return reward and new state to main
+        # Return reward, new current state and end status to algorithm
         return rew, next_state, epi_ended
     
+    # Does not consider terminal and non-terminal states separately
     def get_greedy_policy(self, values):
         # Compute the action value function for pi
         Q_pi = np.sum(self.__f_trans * (self.__f_reward + self.gamma * values), axis=2)
@@ -97,32 +103,31 @@ class MDP:
         pi_greedy = np.argmax(Q_pi, axis=1)
         return pi_greedy
 
+    # Evaluate policy on true MDP or current model
     def evaluate_policy(self, pi):
-        # Assuming all terminal states from policy evaluation to get full rank A matrix
-        # The value associated with terminal states is defined to be = 0.0
+        # The value associated with terminal states is constrained to be = 0.0 in case of episodic tasks
         # coefficient matrix based on bellman's policy eval equations
         states = self.nstates
-        A = np.identity(states) - self.gamma * self.__f_trans[np.arange(states), pi, :]
+        A = np.identity(states) - self.gamma * self.__f_trans[self.states, pi, :]
         # Assign right side b vector as sum of T * R terms
-        b = np.sum(self.__f_trans[np.arange(states), pi, :] * self.__f_reward[np.arange(states), pi, :], axis=1)
+        b = np.sum(self.__f_trans[self.states, pi, :] * self.__f_reward[self.states, pi, :], axis=1)
         values = np.zeros(states, dtype=np.float32)
         # Get list of non terminal states
-        state_lst = list(range(states))
+        no_terminal_state_lst = list(range(states))
         # Check if it is an episodic task, in which case we already know
         # value for terminal states are = 0 (enforce it) (only enter if list non empty)
-        if self.type == 'episodic' and self.terminal:
+        if self.terminal:
             # New delete rows and columns corresponding to indices in self.terminal
             A = np.delete(np.delete(A, self.terminal, axis=1), self.terminal, axis=0)
             b = np.delete(b, self.terminal, axis=0)
-            for i in range(states):
-                if i in self.terminal:
-                    state_lst.remove(i)
-        # Solve and return Ax = b
-        values[state_lst] = np.linalg.solve(A, b)
+        # Solve and return Ax = b for non_terminal states, fixed to 0.0 for terminal states
+        values[self.non_terminal] = np.linalg.solve(A, b)
         return values
 
     # Perform MDP planning using Howard's policy iteration algorithm
-    # Have assumed that last state is unique terminal state
+    # Optimal policy for terminal states is arbitrary in some sense
+    # However due to nature of implementation, the optimal action is the one
+    # with the largest 1 step reward
     def plan(self):
         # Initialise a random prev and current policy vector
         pi_prev = np.random.randint(0, self.nactions, self.nstates)
