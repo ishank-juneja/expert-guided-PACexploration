@@ -2,8 +2,13 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="941df8d4-f7f7-438e-a1d1-87a9ba5ac9fd" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/Advice_class.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/MDP_class.py" beforeDir="false" afterPath="$PROJECT_DIR$/MDP_class.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PACpolicies.py" beforeDir="false" afterPath="$PROJECT_DIR$/PACpolicies.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/Utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/plotter.py" beforeDir="false" afterPath="$PROJECT_DIR$/plotter.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -108,14 +113,23 @@
       <screen x="1366" y="0" width="1920" height="1080" />
     </state>
     <state width="937" height="287" key="GridCell.Tab.0.right/67.339.1299.741/1366.0.1920.1080@1366.0.1920.1080" timestamp="1586159976280" />
+    <state x="2094" y="459" width="454" height="160" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1586343305202">
+      <screen x="1366" y="0" width="1920" height="1080" />
+    </state>
+    <state x="2094" y="459" width="454" height="160" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/67.339.1299.741/1366.0.1920.1080@1366.0.1920.1080" timestamp="1586343305202" />
+    <state x="67" y="339" width="1299" height="741" key="dock-window-1" timestamp="1586346391861">
+      <screen x="67" y="339" width="1299" height="741" />
+    </state>
+    <state x="67" y="339" width="1299" height="741" key="dock-window-1/67.339.1299.741/1366.0.1920.1080@1366.0.1920.1080" timestamp="1586346391861" />
     <state x="1956" y="171" width="871" height="909" key="find.popup" timestamp="1585980652596">
       <screen x="1366" y="0" width="1920" height="1080" />
     </state>
     <state x="1956" y="171" width="871" height="909" key="find.popup/67.339.1299.741/1366.0.1920.1080@1366.0.1920.1080" timestamp="1585980652596" />
     <state x="1366" y="171" width="871" height="909" key="find.popup/67.339.1299.741/1366.0.1920.1080@67.339.1299.741" timestamp="1582379155971" />
-    <state x="1989" y="237" width="672" height="678" key="search.everywhere.popup" timestamp="1582353869147">
+    <state x="1989" y="237" width="672" height="678" key="search.everywhere.popup" timestamp="1586346728155">
       <screen x="1366" y="0" width="1920" height="1080" />
     </state>
+    <state x="1989" y="237" width="672" height="678" key="search.everywhere.popup/67.339.1299.741/1366.0.1920.1080@1366.0.1920.1080" timestamp="1586346728155" />
     <state x="1989" y="237" width="672" height="678" key="search.everywhere.popup/67.339.1299.741/1366.0.1920.1080@67.339.1299.741" timestamp="1582353869147" />
   </component>
 </project>

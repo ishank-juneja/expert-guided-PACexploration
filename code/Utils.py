@@ -23,26 +23,75 @@ class FileLineWrapper(object):
         self.close()
 
 
-def get_born_state(born_state, nstates):
-    # Use default born state s_o if the task specifies it
-    # Else pick a random state to start with
-    if born_state > -1:
-        return born_state
-    else:
-        # If -1/any impossible passed, upper limit not included
-        return np.random.randint(0, nstates)
+def parse_mdp_file(file_name):
+    # Open MDP instance file
+    fin = FileLineWrapper(open(file_name, 'r'))
+    # Read in number of states from line 1 as an int
+    nstates = int(fin.readline())
+    # Read in number of action types from line 2
+    nactions = int(fin.readline())
+    # Read in default born state
+    born = int(fin.readline())
+    # Check if born state lies in range or is -1
+    if born < -1 or born > nstates - 1:
+        # Throw error
+        print("Error in born state on line {0}".format(fin.line))
+        exit(-1)
+    # Read in reward function into a matrix
+    # Init reward matrix, private data member, algos can't access
+    rewards = np.zeros((nstates, nactions, nstates))
+    # Read nstates x nactions number of lines
+    for i in range(nstates * nactions):
+        s = i // nactions
+        a = i % nactions
+        line_data = fin.readline()
+        if check_reward(line_data, fin):
+            rewards[s][a] = np.fromstring(line_data, dtype=float, sep='\t')
+        # Error encountered in parsing line, message printed
+        else:
+            exit(-1)
+    # Read in Transition function into a matrix, private data member, algos can't access
+    transitions = np.zeros_like(rewards)
+    for i in range(nstates * nactions):
+        s = i // nactions
+        a = i % nactions
+        line_data = fin.readline()
+        if check_transition(line_data, fin):
+            transitions[s][a] = np.fromstring(line_data, dtype=float, sep='\t')
+        # Error in line, message printed
+        else:
+            exit(-1)
+    # Read discount factor
+    gamma = float(fin.readline())
+    # Read in Problem type as string --> continuing or episodic
+    problem_type = fin.readline()[:-1]  # exclude terminal '\n'
+    # Close file
+    fin.f.close()
+    # Check validity
+    if problem_type != 'episodic' and problem_type != 'continuing':
+        print("Error on line {0}, provided type {1} must be in [episodic, continuing]".format(fin.line, problem_type))
+        exit(-1)
+    elif gamma > 1.0 or gamma < 0.0:
+        print("Discount factor gamma out of range on line {0}".format(fin.line - 1))
+        exit(-1)
+    elif gamma == 1.0 and problem_type == 'continuing':
+        print("Discount factor cannot be 1.0 for continuing MDP: line {0}".format(fin.line - 1))
+        exit(-1)
+    kwargs = {'nstates': nstates, 'nactions': nactions, 'born': born, 'rewards': rewards,
+              'transitions': transitions, 'gamma': gamma, 'problem_type': problem_type}
+    return kwargs
 
 
 def max_norm_diff(x, y):
     return np.max(np.abs(x - y))
 
 
-def RepresentsInt(s):
-    try:
-        int(s)
-        return True
-    except ValueError:
-        return False
+# def RepresentsInt(s):
+#     try:
+#         int(s)
+#         return True
+#     except ValueError:
+#         return False
 
 
 def print_error(file_line_wrapper):

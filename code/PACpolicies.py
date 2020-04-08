@@ -63,7 +63,7 @@ def mb_action_elimination(mdp, budget, eps, delta):
     model = Model(mdp)
     # Init agent state
     cur_state = get_born_state(mdp.born, mdp.nstates)
-    Rmax = np.max(mdp.rmax)
+    Rmax = model.rmax
     Vmax = Rmax/(1 - model.gamma)
     # Init set of viable state action-pairs
     Uo = []
