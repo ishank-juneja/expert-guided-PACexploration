@@ -4,8 +4,6 @@ The project Using an external expert policy to perform more informed and efficie
 
 The PDF slides for the project for an intermediate presentation made are available on [this link](https://ishank-juneja.github.io/assets/docs/CS748_midterm.pdf).
 
-### Environments and 
-
 ### Related Projects
 
 Another related project that I have worked on in this space is on [Reward Synthesis](https://github.com/ishank-juneja/reward-search-shaping)
@@ -19,7 +17,7 @@ Initial experiments have been run on the River-Swim MDP environment.
 
 ### Instructions to run the scripts
 
-The code is available in the `source` folder.
+The code is available in the `code` folder.
 
 Instructions Coming soon ... 
 
