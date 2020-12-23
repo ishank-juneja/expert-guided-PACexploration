@@ -2,6 +2,8 @@
 
 The project Using an external expert policy to perform more informed and efficient exploration.
 
+The proposal and objectives of this project are described in [this document](https://ishank-juneja.github.io/assets/docs/proposal_PAC_RL.pdf)
+
 The PDF slides for the project for an intermediate presentation made are available on [this link](https://ishank-juneja.github.io/assets/docs/CS748_midterm.pdf).
 
 ### Related Projects

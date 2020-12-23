@@ -73,13 +73,13 @@ class ActionEliminationModel(Model):
             self.cur_state = self.get_born_state()
         # print(model.T_hat)
         # print(model.R_hat)
-        print(self.active)
+        # print(self.active)
         # Return optimal policy as per learned model, if model_valid
-        if self.model_valid:
-            return np.argmax(Q_lower, axis=1)
-        else:
-            print("Exploration unsuccessful, model not learnt")
-            exit(-1)
+        # if self.model_valid:
+        #     return np.argmax(Q_lower, axis=1)
+        # else:
+        #     print("Exploration unsuccessful, model not learnt")
+        #     exit(-1)
 
     def evaluate_upper_lower(self, pi, explore_terms):
         # The value associated with terminal states is constrained to be = 0.0 in case of episodic tasks
@@ -110,6 +110,7 @@ class ActionEliminationModel(Model):
     # Optimal policy for terminal states is arbitrary in some sense
     # For faster convergence initialise policy with policy optimal wrt previous model
     def plan_upper_lower(self, explore_terms, init_policy=None):
+        print("Started a new planning step ... ")
         # Initialise a random prev and current policy vector
         if init_policy is None:
             pi_prev = np.random.randint(0, self.nactions, self.nstates)

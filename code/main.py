@@ -51,8 +51,9 @@ def main(cmd_args, fout):
                     model.run_iteration(mdp, advice)
             elif al == 'action-elimination':
                 model = ActionEliminationModel(mdp, eps=0.1, delta=0.1)
-                advice = FixedProbability(model, pi_advice)
+                advice = FixedProbability(model, pi_advice, alpha=0.1)
                 for t in range(1, horizon + 1):
+                    print("Running iteration {0}".format(t))
                     model.run_iteration(mdp, advice)
             else:
                 print("Invalid algorithm {0} encountered, skipped".format(al))
