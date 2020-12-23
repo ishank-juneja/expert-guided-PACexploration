@@ -6,7 +6,7 @@ import numpy as np
 # Even-Dar et al. 2004, 2006, JMLR
 class ActionEliminationModel(Model):
     def __init__(self, mdp, eps=0.1, delta=0.1):
-        # Initialise all parameters of
+        # Initialize all parameters of
         super().__init__(mdp)
         # Epsilon-delta PAC parameters
         self.eps = eps
@@ -14,22 +14,23 @@ class ActionEliminationModel(Model):
         # And some more AE specific parameters
         self.rmax = mdp.rmax
         self.vmax = self.rmax / (1 - self.gamma)
-        # List to keep track of eliminated and active states
-        # Initially all states are active, AE eliminates them over time
+        # List to keep track of eliminated and active (state, action) pairs
+        # Initially all (state, action) pairs are active, AE eliminates them over time
         self.active = [list(range(self.nactions)) for i in range(self.nstates)]
         # Upper and lower confidence policies for current model
         self.pi_upper = np.random.randint(0, self.nactions, self.nstates)
+        # Won't be the same as above since we get a new random vector each time
         self.pi_lower = np.random.randint(0, self.nactions, self.nstates)
 
     # For internal use, gets explore terms based on internal state
     def get_explore_terms(self):
-        # Get explore terms as defined in the paper
+        # Get explore terms as defined in the cited work
         explore_terms = self.vmax * np.sqrt(
                     np.log((self.time ** 2) * self.nstates * self.nactions / self.delta) / self.total_visits)
         return explore_terms
 
     def run_iteration(self, mdp, advice):
-        # Exploration bonus terms for every (s, a)
+        # Exploration bonus terms for every (s, a) pair
         explore_terms = self.get_explore_terms()
         if self.model_valid:
             # Choose any random non-eliminated action as per AE algorithm

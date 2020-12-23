@@ -66,7 +66,7 @@ class Model:
         self.T_hat[s, a, :] = self.total_trans[s, a, :]/self.total_visits[s, a]
         # Update reward function
         self.R_hat[s, a, s_prime] = self.total_rew[s, a, s_prime]/self.total_trans[s, a, s_prime]
-        # Model becomes valid once all non terminal state-action pairs have been reached
+        # Model becomes valid once all non terminal state-action pairs have been reached once
         if not self.model_valid:
             # Can't take any actions from terminal state, so exclude from checking process
             # delete all rows corresponding to [s, a] where s \in terminal/excluded set
@@ -81,17 +81,19 @@ class Model:
                 self.model_valid = True
 
     # Does not consider terminal and non-terminal states separately
+    # Since there is no need for it
     def get_greedy_policy(self, values):
         # Compute the action value function for pi
+        # Take the sum over the final state s'
         Q_pi = np.sum(self.T_hat * (self.R_hat + self.gamma * values), axis=2)
-        # Return the greedy policy wrt current action values
+        # Return the greedy policy wrt current action value function Q^{pi}
         pi_greedy = np.argmax(Q_pi, axis=1)
         return pi_greedy
 
-    # Evaluate policy on true MDP or current model
+    # Evaluate policy on current model
     def evaluate_policy_on_model(self, pi):
         # The value associated with terminal states is constrained to be = 0.0 in case of episodic tasks
-        # coefficient matrix based on bellman's policy eval equations
+        # coefficient matrix based on bellman's policy evaluation equations
         states = self.nstates
         A = np.identity(states) - self.gamma * self.T_hat[self.states, pi, :]
         # Assign right side b vector as sum of T * R terms
@@ -108,15 +110,16 @@ class Model:
         return values
 
     # Perform MDP planning using Howard's policy iteration algorithm
-    # Optimal policy for terminal states is arbitrary in some sense
+    # Optimal policy for terminal states is arbitrary since we are using H-PI
     # For faster convergence initialise policy with policy optimal wrt previous model
     def plan(self, init_policy=None):
         # Initialise a random prev and current policy vector
         if init_policy is None:
             pi_prev = np.random.randint(0, self.nactions, self.nstates)
         else:
+            # Create a copy since numpy arrays are mutable objects
             pi_prev = init_policy.copy()
-        # Perform 1 iteration of HPI to enter while loop
+        # Perform 1 iteration of Policy Improvement (HPI) to enter while loop
         # Get value function for current policy
         values = self.evaluate_policy_on_model(pi_prev)
         # Attempt to improve policy by evaluating action value functions

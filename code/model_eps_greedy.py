@@ -3,12 +3,13 @@ import numpy as np
 
 
 class EpsGreedyModel(Model):
-    # Initialise like parent model class
+    # Initialize like parent model class
     def __init__(self, mdp, eps=0.1):
         super().__init__(mdp)
         # Uniform random exploration probability
         self.eps = eps
         # Policy optimal/greedy with respect to current model
+        # Part of the exploration algorithm class, initialized as random
         self.pi_opt = np.random.randint(0, self.nactions, self.nstates)
 
     # Method to select next action and run an iteration of model learning
@@ -16,8 +17,10 @@ class EpsGreedyModel(Model):
         rand = np.random.uniform(0.0, 1.0)
         # If model has become valid by visiting every state-action pair
         if self.model_valid:
+            print("Model became valid")
             # MDP plan for optimal policy under current model
             v_opt, self.pi_opt = self.plan(init_policy=self.pi_opt)
+            print("Learned policy pi_opt is {0}".format(self.pi_opt))
             # Explore uniformly at random
             if rand < self.eps:
                 pac_action = np.random.randint(0, self.nactions)

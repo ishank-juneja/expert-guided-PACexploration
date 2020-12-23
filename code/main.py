@@ -45,8 +45,9 @@ def main(cmd_args, fout):
             print("Currently simulating {0} on {1} with random seed = {2}".format(al, in_name, rs))
             if al == 'eps-greedy':
                 model = EpsGreedyModel(mdp, eps=0.1)
-                advice = FixedProbability(model, pi_advice)
+                advice = FixedProbability(model, pi_advice, alpha=0.1)
                 for t in range(1, horizon + 1):
+                    print("Running iteration {0}".format(t))
                     model.run_iteration(mdp, advice)
             elif al == 'action-elimination':
                 model = ActionEliminationModel(mdp, eps=0.1, delta=0.1)
