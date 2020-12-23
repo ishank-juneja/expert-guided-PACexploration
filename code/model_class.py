@@ -2,11 +2,14 @@ import numpy as np
 
 
 # Model to store current understanding of an environment
+# different from the MDp sample model
 class Model:
-    # Init model by referencing underlying MDP
+    # Init model using underlying MDP sample model
     def __init__(self, mdp):
-        # collect the same state and action space as actual MDP
+        # copy the same state and action space as actual MDP
         self.nstates = mdp.nstates
+        # Array for MDP states
+        self.states = mdp.states
         self.nactions = mdp.nactions
         # Init containers for eventually learned MDP parameters,
         # we learn the parameters to get a "PAC-MDP" model under the PAC-RL framework
@@ -25,25 +28,45 @@ class Model:
         # MDP type
         self.type = mdp.type
         # List of terminal states, to be excluded from model learning process
+        # Both empty in case of continuing task
         self.exclude = mdp.terminal
+        # List of non-terminal states
+        self.non_terminal = mdp.non_terminal
         # Assign probability 1.0 of coming back to terminal state
         # under any action taken while at terminal state
         for state in self.exclude:
-            # Other probabilities = 0 by default
+            # Other probabilities = 0.0 by default
             self.T_hat[state, :, state] = 1.0
+        # Number of updates/time steps taken
+        self.time = 0
+        # Get born state from MDP sample model object
+        self.born = mdp.born
+        # Get current state
+        self.cur_state = self.get_born_state()
+
+    def get_born_state(self):
+        # Use default born state s_o if the task specifies it
+        # Else pick a random state to start with
+        if -1 < self.born < self.nstates:
+            return self.born
+        else:
+            # If -1/any impossible index passed, upper limit not included
+            return np.random.randint(0, self.nstates)
 
     # Update model estimate
-    def update(self, s, a, r, s_prime):
+    def update(self, a, r, s_prime):
+        s = self.cur_state
         # Update visitation stats
         self.total_trans[s, a, s_prime] += 1
         self.total_rew[s, a, s_prime] += r
         self.total_visits[s, a] += 1
+        # Update number of steps taken
+        self.time += 1
         # Update transition probabilities
         self.T_hat[s, a, :] = self.total_trans[s, a, :]/self.total_visits[s, a]
         # Update reward function
         self.R_hat[s, a, s_prime] = self.total_rew[s, a, s_prime]/self.total_trans[s, a, s_prime]
-        # Model becomes valid once all state -action pairs for non-terminal
-        # states have been reached
+        # Model becomes valid once all non terminal state-action pairs have been reached
         if not self.model_valid:
             # Can't take any actions from terminal state, so exclude from checking process
             # delete all rows corresponding to [s, a] where s \in terminal/excluded set
@@ -57,112 +80,53 @@ class Model:
             elif np.all(np.delete(self.total_visits, self.exclude, axis=0) > 10):
                 self.model_valid = True
 
+    # Does not consider terminal and non-terminal states separately
     def get_greedy_policy(self, values):
-        Q_pi = np.zeros((self.nstates, self.nactions))
-        for s in range(self.nstates):
-            for a in range(self.nactions):
-                Q_pi[s, a] = np.sum(self.T_hat[s, a, :] * (self.R_hat[s, a, :] +
-                                                            self.gamma * values))
-        # Return the maximizers of the action value function over the actions a
-        pi_greedy = np.zeros_like(values, dtype=int)
-        for s in range(self.nstates):
-            # Action that maximizes Q for given pi
-            pi_greedy[s] = np.argmax(Q_pi[s, :])
+        # Compute the action value function for pi
+        Q_pi = np.sum(self.T_hat * (self.R_hat + self.gamma * values), axis=2)
+        # Return the greedy policy wrt current action values
+        pi_greedy = np.argmax(Q_pi, axis=1)
         return pi_greedy
 
-    def eval_policy_on_model(self, pi):
-        # Assuming all terminal states from policy evaluation to get full rank A matrix
-        # The value associated with terminal states is defined to be = 0.0
-        # Init coefficient matrix based on diagonal elements having + 1 term
+    # Evaluate policy on true MDP or current model
+    def evaluate_policy_on_model(self, pi):
+        # The value associated with terminal states is constrained to be = 0.0 in case of episodic tasks
+        # coefficient matrix based on bellman's policy eval equations
         states = self.nstates
-        A = np.identity(states)
-        # Assign as per bellman's policy eval equations
-        for s in range(states):
-            A[s, :] = A[s, :] - self.gamma * self.T_hat[s, pi[s], :]
+        A = np.identity(states) - self.gamma * self.T_hat[self.states, pi, :]
         # Assign right side b vector as sum of T * R terms
-        b = np.zeros(states)
-        for s in range(states):
-            b[s] = np.sum(self.T_hat[s, pi[s], :] * self.R_hat[s, pi[s], :])
-        # Array to hold values
+        b = np.sum(self.T_hat[self.states, pi, :] * self.R_hat[self.states, pi, :], axis=1)
         values = np.zeros(states, dtype=np.float32)
-        # Get list of non terminal states
-        state_lst = list(range(states))
         # Check if it is an episodic task, in which case we already know
-        # value for terminal states = 0 (enforce it)
-        if self.type == 'episodic':
+        # value for terminal states are = 0 (enforce it) (only enter if list non empty)
+        if self.exclude:
             # New delete rows and columns corresponding to indices in self.terminal
             A = np.delete(np.delete(A, self.exclude, axis=1), self.exclude, axis=0)
             b = np.delete(b, self.exclude, axis=0)
-            for i in range(states):
-                if i in self.exclude:
-                    state_lst.remove(i)
-        # Solve and return Ax = b
-        values[state_lst] = np.linalg.solve(A, b)
+        # Solve and return Ax = b for non_terminal states, fixed to 0.0 for terminal states
+        values[self.non_terminal] = np.linalg.solve(A, b)
         return values
 
-    def evaluate_MBAE_policy(self, pi, explore_terms):
-        # Assuming all terminal states from policy evaluation to get full rank A matrix
-        # The value associated with terminal states is defined to be = 0.0
-        # Init coefficient matrix based on diagonal elements having + 1 term
-        states = self.nstates
-        A = np.identity(states)
-        # Assign as per bellman's policy eval equations
-        for s in range(states):
-            A[s, :] = A[s, :] - self.gamma * self.T_hat[s, pi[s], :]
-        # Assign right side b vector as sum of T * R terms
-        b = np.zeros(states)
-        for s in range(states):
-            # Additional explore term corresponding to (s, pi(s)) is added to RHS
-            # In solving the linear Bell-man equations --> augmented bellman's equations
-            b[s] = np.sum(self.T_hat[s, pi[s], :] * self.R_hat[s, pi[s], :]) + explore_terms[s, pi[s]]
-        # Array to hold values
-        values = np.zeros(states, dtype=np.float32)
-        # Get list of non terminal states
-        state_lst = list(range(states))
-        # Check if it is an episodic task, in which case we already know
-        # value for terminal states = 0 (enforce it)
-        if self.type == 'episodic':
-            # New delete rows and columns corresponding to indices in self.terminal
-            A = np.delete(np.delete(A, self.exclude, axis=1), self.exclude, axis=0)
-            b = np.delete(b, self.exclude, axis=0)
-            for i in range(states):
-                if i in self.exclude:
-                    state_lst.remove(i)
-        # Solve and return Ax = b
-        values[state_lst] = np.linalg.solve(A, b)
-        # manually add the exploration terms to the value of the terminal states
-        # For terminal states
-        # Only non zero term in value function will be MBAE explore term
-        values[self.exclude] = explore_terms[self.exclude, pi[self.exclude]]
-        return values
-
-    # Perform MDP planning using Howard's policy iteration algo
-    # Have assumed that last state is unique terminal state
-    def plan(self, init_policy=None, pac_type=None, explore_terms=0):
+    # Perform MDP planning using Howard's policy iteration algorithm
+    # Optimal policy for terminal states is arbitrary in some sense
+    # For faster convergence initialise policy with policy optimal wrt previous model
+    def plan(self, init_policy=None):
         # Initialise a random prev and current policy vector
         if init_policy is None:
             pi_prev = np.random.randint(0, self.nactions, self.nstates)
         else:
-            pi_prev = init_policy
-        pi_cur = np.copy(pi_prev)
-        # Change 1 action in pi_cur to enter loop (assuming at least 2 actions in MDP)
-        if pi_cur[0] != 0:
-            pi_cur[0] = 0
-        else:
-            pi_cur[0] = 1
-        # Init values array
-        values = np.zeros_like(pi_prev, dtype=float)
+            pi_prev = init_policy.copy()
+        # Perform 1 iteration of HPI to enter while loop
+        # Get value function for current policy
+        values = self.evaluate_policy_on_model(pi_prev)
+        # Attempt to improve policy by evaluating action value functions
+        pi_cur = self.get_greedy_policy(values)
         # Begin policy iteration/improvement loop
         while not np.array_equal(pi_prev, pi_cur):
             # Update pi_prev to pi_cur
             pi_prev = pi_cur
-            # Get current performance
-            # If episodic V(|S|-1) == 0 fixed and solver solves accordingly
-            if pac_type is None:
-                values = self.eval_policy_on_model(pi_prev)
-            elif pac_type is 'MBAE':
-                values = self.evaluate_MBAE_policy(pi_prev, explore_terms)
-            # Attempt to improve policy by evaluating action value functions
+            # Get value function for current policy
+            values = self.evaluate_policy_on_model(pi_prev)
+            # Switch all improvable states as per rules of HPI
             pi_cur = self.get_greedy_policy(values)
         return values, pi_cur
-

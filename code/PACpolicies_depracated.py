@@ -1,6 +1,6 @@
 import numpy as np
 from Utils import get_born_state
-from model_class import Model
+from model_class_depracated import Model
 
 
 # Model based epsilon-greedy exploration (MBEG)

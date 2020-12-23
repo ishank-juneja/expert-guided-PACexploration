@@ -2,7 +2,7 @@ import numpy as np
 
 
 # Wrapper class for keeping track of line numbers
-# while reading a text file, from stack overflow
+# while reading a text file, taken from SO
 class FileLineWrapper(object):
     def __init__(self, f):
         self.f = f
@@ -23,6 +23,7 @@ class FileLineWrapper(object):
         self.close()
 
 
+# Function to parse an input MDP .txt file
 def parse_mdp_file(file_name):
     # Open MDP instance file
     fin = FileLineWrapper(open(file_name, 'r'))
@@ -49,6 +50,7 @@ def parse_mdp_file(file_name):
             rewards[s][a] = np.fromstring(line_data, dtype=float, sep='\t')
         # Error encountered in parsing line, message printed
         else:
+            # Some error, unsure whether in reward function or in transition function
             exit(-1)
     # Read in Transition function into a matrix, private data member, algos can't access
     transitions = np.zeros_like(rewards)
@@ -60,6 +62,7 @@ def parse_mdp_file(file_name):
             transitions[s][a] = np.fromstring(line_data, dtype=float, sep='\t')
         # Error in line, message printed
         else:
+            # Some error, unsure whether in reward function or in transition function
             exit(-1)
     # Read discount factor
     gamma = float(fin.readline())
@@ -84,21 +87,6 @@ def parse_mdp_file(file_name):
 
 def max_norm_diff(x, y):
     return np.max(np.abs(x - y))
-
-
-# def RepresentsInt(s):
-#     try:
-#         int(s)
-#         return True
-#     except ValueError:
-#         return False
-
-
-def print_error(file_line_wrapper):
-    print("Error encountered on line {0} while parsing file {1}".format(file_line_wrapper.line,
-                                                                        file_line_wrapper.f.name))
-    # Exit program, mdp file incorrect
-    exit(-1)
 
 
 # Check if a line is a valid string for reward
