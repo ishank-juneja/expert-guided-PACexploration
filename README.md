@@ -1,5 +1,10 @@
 # Expert Guided PAC-Exploration in Model-Based Reinforcement Learning
 
+<p align="center">
+  <br>
+  <img src="media/PAC-transfer.png" alt="regular" height='150'/>
+</p>
+
 The project Using an external expert policy to perform more informed and efficient exploration.
 
 The proposal and objectives of this project are described in [this document](https://ishank-juneja.github.io/assets/docs/proposal_PAC_RL.pdf)
