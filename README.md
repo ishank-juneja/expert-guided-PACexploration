@@ -2,7 +2,7 @@
 
 <p align="center">
   <br>
-  <img src="media/PAC-transfer.png" alt="regular" height='150'/>
+  <img src="media/PAC-transfer.png" alt="regular" height='450'/>
 </p>
 
 The project Using an external expert policy to perform more informed and efficient exploration.
